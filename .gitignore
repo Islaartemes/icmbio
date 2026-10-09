@@ -1,0 +1,36 @@
+# Credenciais locais
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+# Dados baixados do ICMBio
+# data/raw/
+# data/staging/
+# data/processed/
+# *.shp
+# *.shx
+# *.dbf
+# *.prj
+# *.cpg
+# *.kml
+# *.kmz
+
+# Logs e artefatos gerados
+*.log
+logs/
+reports/generated/
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+# Ferramentas e sistema operacional
+.DS_Store
+.idea/
+.vscode/
