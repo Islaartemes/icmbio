@@ -3,14 +3,20 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-import psycopg
-from psycopg import Connection
+from pg8000.dbapi import Connection, connect
 
 from icmbio_pipeline.configuracao import Configuracao
 
 
 def conectar(configuracao: Configuracao) -> Connection:
-    return psycopg.connect(**configuracao.parametros_conexao())
+    return connect(
+        host=configuracao.host_banco,
+        port=configuracao.porta_banco,
+        database=configuracao.nome_banco,
+        user=configuracao.usuario_banco,
+        password=configuracao.senha_banco,
+        timeout=10,
+    )
 
 
 def buscar_ultimo_hash(conexao: Connection) -> str | None:
@@ -34,6 +40,7 @@ def buscar_ultimo_hash(conexao: Connection) -> str | None:
 
     if registro is None:
         return None
+
     return registro[0].strip()
 
 
@@ -60,5 +67,11 @@ def registrar_carga(
     with conexao.cursor() as cursor:
         cursor.execute(
             comando,
-            (id_carga, data_fim, arquivo_origem, hash_arquivo, status),
+            (
+                id_carga,
+                data_fim,
+                arquivo_origem,
+                hash_arquivo,
+                status,
+            ),
         )
