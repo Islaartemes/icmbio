@@ -34,9 +34,13 @@ def buscar_ultimo_hash(conexao: Connection) -> str | None:
         LIMIT 1
     """
 
-    with conexao.cursor() as cursor:
+    cursor = conexao.cursor()
+
+    try:
         cursor.execute(consulta)
         registro = cursor.fetchone()
+    finally:
+        cursor.close()
 
     if registro is None:
         return None
@@ -64,7 +68,9 @@ def registrar_carga(
         VALUES (%s, CURRENT_TIMESTAMP, %s, %s, %s, %s)
     """
 
-    with conexao.cursor() as cursor:
+    cursor = conexao.cursor()
+
+    try:
         cursor.execute(
             comando,
             (
@@ -75,3 +81,5 @@ def registrar_carga(
                 status,
             ),
         )
+    finally:
+        cursor.close()
