@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Pipeline de dados de areas embargadas do ICMBio"
 requires-python = ">=3.11"
 dependencies = [
-    "psycopg[binary]>=3.2,<4",
+    "pg8000>=1.31,<2",
     "python-dotenv>=1.0,<2",
     "requests>=2.32,<3",
 ]

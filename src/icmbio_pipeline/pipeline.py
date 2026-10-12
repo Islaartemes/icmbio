@@ -2,9 +2,9 @@ import logging
 from datetime import datetime
 from uuid import uuid4
 
-from src.icmbio_pipeline.banco import buscar_ultimo_hash, conectar, registrar_carga
-from src.icmbio_pipeline.configuracao import carregar_configuracao
-from src.icmbio_pipeline.extracao import arquivar_arquivo, baixar_xlsx
+from icmbio_pipeline.banco import buscar_ultimo_hash, conectar, registrar_carga
+from icmbio_pipeline.configuracao import carregar_configuracao
+from icmbio_pipeline.extracao import arquivar_arquivo, baixar_xlsx
 
 
 LOG = logging.getLogger(__name__)
