@@ -9,6 +9,8 @@ description = "Pipeline de dados de areas embargadas do ICMBio"
 requires-python = ">=3.11"
 dependencies = [
     "pg8000>=1.31,<2",
+    "openpyxl>=3.1,<4",
+    "pandas>=2.2,<3",
     "python-dotenv>=1.0,<2",
     "requests>=2.32,<3",
 ]
@@ -27,3 +29,4 @@ where = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+
