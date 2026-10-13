@@ -24,8 +24,6 @@ def buscar_ultimo_hash(conexao: Connection) -> str | None:
         SELECT hash_sha256
         FROM controle.carga
         WHERE status IN (
-            'SEM_ALTERACAO',
-            'ARQUIVO_BAIXADO',
             'RAW_CARREGADA',
             'STG_CARREGADA',
             'CONCLUIDA'
@@ -44,8 +42,77 @@ def buscar_ultimo_hash(conexao: Connection) -> str | None:
 
     if registro is None:
         return None
-
     return registro[0].strip()
+
+
+def finalizar_carga_raw(
+    conexao: Connection,
+    id_carga: UUID,
+    quantidade_linhas: int,
+) -> None:
+    comando = """
+        UPDATE controle.carga
+        SET status = 'RAW_CARREGADA',
+            linhas_raw = %s,
+            data_fim = CURRENT_TIMESTAMP
+        WHERE id_carga = %s
+    """
+
+    cursor = conexao.cursor()
+
+    try:
+        cursor.execute(
+            comando,
+            (quantidade_linhas, id_carga),
+        )
+    finally:
+        cursor.close()
+
+
+def buscar_ultima_carga_raw(conexao: Connection) -> UUID | None:
+    consulta = """
+        SELECT id_carga
+        FROM controle.carga
+        WHERE status = 'RAW_CARREGADA'
+        ORDER BY data_inicio DESC
+        LIMIT 1
+    """
+
+    cursor = conexao.cursor()
+
+    try:
+        cursor.execute(consulta)
+        registro = cursor.fetchone()
+    finally:
+        cursor.close()
+
+    if registro is None:
+        return None
+    return registro[0]
+
+
+def finalizar_carga_stg(
+    conexao: Connection,
+    id_carga: UUID,
+    quantidade_linhas: int,
+) -> None:
+    comando = """
+        UPDATE controle.carga
+        SET status = 'STG_CARREGADA',
+            linhas_stg = %s,
+            data_fim = CURRENT_TIMESTAMP
+        WHERE id_carga = %s
+    """
+
+    cursor = conexao.cursor()
+
+    try:
+        cursor.execute(
+            comando,
+            (quantidade_linhas, id_carga),
+        )
+    finally:
+        cursor.close()
 
 
 def registrar_carga(
@@ -73,13 +140,7 @@ def registrar_carga(
     try:
         cursor.execute(
             comando,
-            (
-                id_carga,
-                data_fim,
-                arquivo_origem,
-                hash_arquivo,
-                status,
-            ),
+            (id_carga, data_fim, arquivo_origem, hash_arquivo, status),
         )
     finally:
         cursor.close()
