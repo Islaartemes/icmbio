@@ -1,4 +1,3 @@
-
 import logging
 from datetime import datetime
 from uuid import uuid4
@@ -7,9 +6,11 @@ from icmbio_pipeline.banco import (
     buscar_ultimo_hash,
     conectar,
     finalizar_carga_raw,
+    finalizar_carga_stg,
     registrar_carga,
 )
 from icmbio_pipeline.carga_raw import carregar_raw
+from icmbio_pipeline.carga_stg import carregar_stg
 from icmbio_pipeline.configuracao import carregar_configuracao
 from icmbio_pipeline.extracao import arquivar_arquivo, baixar_xlsx
 
@@ -71,13 +72,25 @@ def executar_pipeline() -> str:
             id_carga=id_carga,
             quantidade_linhas=quantidade_linhas,
         )
+
+        LOG.info("Transformando a carga para a tabela stg.embargo_icmbio")
+        quantidade_linhas_stg = carregar_stg(
+            conexao=conexao,
+            id_carga=id_carga,
+        )
+        finalizar_carga_stg(
+            conexao=conexao,
+            id_carga=id_carga,
+            quantidade_linhas=quantidade_linhas_stg,
+        )
         conexao.commit()
         LOG.info(
-            "%s linhas carregadas na RAW a partir de %s",
+            "%s linhas carregadas na RAW e %s linhas na STG a partir de %s",
             quantidade_linhas,
+            quantidade_linhas_stg,
             caminho_arquivado,
         )
-        return "RAW_CARREGADA"
+        return "STG_CARREGADA"
     except Exception:
         if conexao is not None:
             conexao.rollback()
