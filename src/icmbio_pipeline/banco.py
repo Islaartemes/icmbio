@@ -24,7 +24,6 @@ def buscar_ultimo_hash(conexao: Connection) -> str | None:
         SELECT hash_sha256
         FROM controle.carga
         WHERE status IN (
-            'RAW_CARREGADA',
             'STG_CARREGADA',
             'CONCLUIDA'
         )
@@ -42,6 +41,7 @@ def buscar_ultimo_hash(conexao: Connection) -> str | None:
 
     if registro is None:
         return None
+
     return registro[0].strip()
 
 
@@ -69,11 +69,16 @@ def finalizar_carga_raw(
         cursor.close()
 
 
-def buscar_ultima_carga_para_stg(conexao: Connection) -> UUID | None:
+def buscar_ultima_carga_para_stg(
+    conexao: Connection,
+) -> UUID | None:
     consulta = """
         SELECT id_carga
         FROM controle.carga
-        WHERE status IN ('RAW_CARREGADA', 'STG_CARREGADA')
+        WHERE status IN (
+            'RAW_CARREGADA',
+            'STG_CARREGADA'
+        )
         ORDER BY data_inicio DESC
         LIMIT 1
     """
@@ -88,6 +93,7 @@ def buscar_ultima_carga_para_stg(conexao: Connection) -> UUID | None:
 
     if registro is None:
         return None
+
     return registro[0]
 
 
@@ -115,6 +121,67 @@ def finalizar_carga_stg(
         cursor.close()
 
 
+def buscar_ultima_carga_stg(
+    conexao: Connection,
+) -> UUID | None:
+    consulta = """
+        SELECT id_carga
+        FROM controle.carga
+        WHERE status = 'STG_CARREGADA'
+        ORDER BY data_inicio DESC
+        LIMIT 1
+    """
+
+    cursor = conexao.cursor()
+
+    try:
+        cursor.execute(consulta)
+        registro = cursor.fetchone()
+    finally:
+        cursor.close()
+
+    if registro is None:
+        return None
+
+    return registro[0]
+
+
+def finalizar_carga_dw(
+    conexao: Connection,
+    id_carga: UUID,
+    linhas_fato: int,
+    registros_novos: int,
+    registros_alterados: int,
+    registros_ausentes: int,
+) -> None:
+    comando = """
+        UPDATE controle.carga
+        SET status = 'CONCLUIDA',
+            linhas_fato = %s,
+            registros_novos = %s,
+            registros_alterados = %s,
+            registros_ausentes = %s,
+            data_fim = CURRENT_TIMESTAMP
+        WHERE id_carga = %s
+    """
+
+    cursor = conexao.cursor()
+
+    try:
+        cursor.execute(
+            comando,
+            (
+                linhas_fato,
+                registros_novos,
+                registros_alterados,
+                registros_ausentes,
+                id_carga,
+            ),
+        )
+    finally:
+        cursor.close()
+
+
 def registrar_carga(
     conexao: Connection,
     id_carga: UUID,
@@ -132,7 +199,14 @@ def registrar_carga(
             hash_sha256,
             status
         )
-        VALUES (%s, CURRENT_TIMESTAMP, %s, %s, %s, %s)
+        VALUES (
+            %s,
+            CURRENT_TIMESTAMP,
+            %s,
+            %s,
+            %s,
+            %s
+        )
     """
 
     cursor = conexao.cursor()
@@ -140,7 +214,13 @@ def registrar_carga(
     try:
         cursor.execute(
             comando,
-            (id_carga, data_fim, arquivo_origem, hash_arquivo, status),
+            (
+                id_carga,
+                data_fim,
+                arquivo_origem,
+                hash_arquivo,
+                status,
+            ),
         )
     finally:
         cursor.close()
