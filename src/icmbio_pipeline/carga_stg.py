@@ -11,7 +11,7 @@ from uuid import UUID
 from pg8000.dbapi import Connection
 
 from icmbio_pipeline.banco import (
-    buscar_ultima_carga_raw,
+    buscar_ultima_carga_para_stg,
     conectar,
     finalizar_carga_stg,
 )
@@ -112,6 +112,18 @@ def converter_area(valor: str | None) -> tuple[str | None, Decimal | None, bool]
     if numero_com_hectare:
         area_ha = _converter_decimal(numero_com_hectare.group(1))
         return area_original, area_ha, area_ha is not None
+
+    numero_com_metro_quadrado = re.search(
+        r"([0-9][0-9.,]*)\s*(?:m2|m\^2|metros? quadrados?)\b",
+        texto,
+    )
+
+    if numero_com_metro_quadrado:
+        area_m2 = _converter_decimal(numero_com_metro_quadrado.group(1))
+
+        if area_m2 is not None:
+            area_ha = area_m2 / Decimal("10000")
+            return area_original, area_ha, True
 
     return area_original, None, False
 
@@ -286,7 +298,7 @@ def executar_carga_stg() -> int:
     conexao = conectar(configuracao)
 
     try:
-        id_carga = buscar_ultima_carga_raw(conexao)
+        id_carga = buscar_ultima_carga_para_stg(conexao)
 
         if id_carga is None:
             raise RuntimeError("Nao existe uma carga RAW pendente")

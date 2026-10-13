@@ -69,11 +69,11 @@ def finalizar_carga_raw(
         cursor.close()
 
 
-def buscar_ultima_carga_raw(conexao: Connection) -> UUID | None:
+def buscar_ultima_carga_para_stg(conexao: Connection) -> UUID | None:
     consulta = """
         SELECT id_carga
         FROM controle.carga
-        WHERE status = 'RAW_CARREGADA'
+        WHERE status IN ('RAW_CARREGADA', 'STG_CARREGADA')
         ORDER BY data_inicio DESC
         LIMIT 1
     """
