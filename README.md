@@ -408,11 +408,6 @@ Indicadores recomendados:
 - unidades de conservação com mais embargos;
 - tipos de infração mais frequentes.
 
-## Testes
-
-```bash
-python -m pytest
-```
 
 Os testes verificam o download, a validação do XLSX, o cálculo do hash e o
 arquivamento do arquivo.
