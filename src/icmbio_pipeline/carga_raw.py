@@ -8,7 +8,10 @@ from openpyxl import load_workbook
 from pg8000.dbapi import Connection
 
 
-NOME_PLANILHA = "vw_4_divulgacao_embargos_eletro"
+NOMES_PLANILHA = (
+    "embargos_icmbio",
+    "vw_4_divulgacao_embargos_eletro",
+)
 TAMANHO_LOTE = 500
 
 COLUNAS_FONTE = (
@@ -125,12 +128,22 @@ def carregar_raw(
     )
 
     try:
-        if NOME_PLANILHA not in arquivo_excel.sheetnames:
+        nome_planilha = next(
+            (
+                nome
+                for nome in NOMES_PLANILHA
+                if nome in arquivo_excel.sheetnames
+            ),
+            None,
+        )
+
+        if nome_planilha is None:
             raise ErroEstruturaArquivo(
-                f"Planilha nao encontrada: {NOME_PLANILHA}"
+                "Nenhuma das planilhas esperadas foi encontrada. "
+                f"Encontradas: {arquivo_excel.sheetnames}"
             )
 
-        planilha = arquivo_excel[NOME_PLANILHA]
+        planilha = arquivo_excel[nome_planilha]
         linhas = planilha.iter_rows(values_only=True)
         cabecalho = next(linhas, None)
 
